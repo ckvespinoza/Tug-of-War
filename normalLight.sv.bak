@@ -1,0 +1,23 @@
+module normalLight (
+	input  logic clk, reset,
+	input  logic L, R,        // button pulses
+	input  logic NL, NR,      // neighbor lights
+	output logic lightOn
+	);
+	typedef enum logic [1:0] {OFF=2'b00, ON=2'b01} state_t;
+	state_t ps, ns;
+
+	always_comb begin
+		ns = ps;
+		case (ps)
+			OFF: if (NL & R | NR & L) ns = ON;   // neighbor passes light in
+			ON:  if (L | R) ns = OFF;            // light moves away
+		endcase
+	end
+
+	always_ff @(posedge clk or posedge reset)
+		if (reset) ps <= OFF;
+		else ps <= ns;
+
+	assign lightOn = (ps == ON);
+endmodule

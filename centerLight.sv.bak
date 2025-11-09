@@ -1,0 +1,26 @@
+module centerLight (
+input  logic clk, reset,
+input  logic L, R,
+input  logic NL, NR,
+output logic lightOn
+);
+typedef enum logic [1:0] {OFF=2'b00, ON=2'b01} state_t;
+state_t ps, ns;
+
+always_comb begin
+ns = ps;
+case (ps)
+OFF: if (NL | NR) ns = ON;           // regain light from neighbors
+ON: begin
+if (R) ns = OFF;                 // move right
+else if (L) ns = OFF;            // move left
+end
+endcase
+end
+
+always_ff @(posedge clk or posedge reset)
+if (reset) ps <= ON; // start ON
+else ps <= ns;
+
+assign lightOn = (ps == ON);
+endmodule
